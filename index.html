@@ -2,39 +2,21 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Карта битви & Форум</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Battle Map Project</title>
     <style>
-        body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
-        #map { height: 70%; width: 100%; } /* Карта на 70% екрану */
-        #forum { height: 30%; width: 100%; padding: 20px; overflow-y: scroll; background: #f4f4f4; border-top: 2px solid #ccc; box-sizing: border-box; }
-        .news-item { background: white; padding: 10px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        body { background: #1a1a1a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .menu { text-align: center; border: 2px solid #333; padding: 50px; border-radius: 15px; background: #222; }
+        h1 { font-size: 3em; margin-bottom: 20px; color: #e74c3c; }
+        .btn { display: inline-block; padding: 15px 30px; background: #e74c3c; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; transition: 0.3s; }
+        .btn:hover { background: #c0392b; transform: scale(1.05); }
     </style>
 </head>
 <body>
-
-    <div id="map"></div>
-
-    <div id="forum">
-        <h2>Стрічка новин та обговорення</h2>
-        <div class="news-item">
-            <strong>16.01.2026:</strong> Сайт-карту запущено! <br>
-            <small>Обговорюємо перші маркери в коментарях.</small>
-        </div>
-        <p><i>Тут згодом ми підключимо справжній чат.</i></p>
+    <div class="menu">
+        <h1>BATTLE MAP</h1>
+        <p>Інтерактивна карта бойових дій</p>
+        <br>
+        <a href="map.html" class="btn">ВІДКРИТИ КАРТУ</a>
     </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        var map = L.map('map').setView([48.37, 31.16], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-
-        // ДОДАЄМО МАРКЕР (Точка на карті)
-        // Координати [48.45, 34.98] - це Дніпро. Можеш змінити їх на будь-які.
-        var marker = L.marker([48.45, 34.98]).addTo(map);
-        marker.bindPopup("<b>Штаб карти</b><br>Тут ми починаємо проект.").openPopup();
-    </script>
 </body>
 </html>
