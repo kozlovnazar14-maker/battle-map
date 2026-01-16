@@ -2,22 +2,39 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Карта битви</title>
+    <title>Карта битви & Форум</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; }
-        #map { height: 100vh; width: 100%; }
+        body { margin: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; }
+        #map { height: 70%; width: 100%; } /* Карта на 70% екрану */
+        #forum { height: 30%; width: 100%; padding: 20px; overflow-y: scroll; background: #f4f4f4; border-top: 2px solid #ccc; box-sizing: border-box; }
+        .news-item { background: white; padding: 10px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
+
     <div id="map"></div>
+
+    <div id="forum">
+        <h2>Стрічка новин та обговорення</h2>
+        <div class="news-item">
+            <strong>16.01.2026:</strong> Сайт-карту запущено! <br>
+            <small>Обговорюємо перші маркери в коментарях.</small>
+        </div>
+        <p><i>Тут згодом ми підключимо справжній чат.</i></p>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Створюємо карту та фокусуємо її на Україні
         var map = L.map('map').setView([48.37, 31.16], 6);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(map);
+
+        // ДОДАЄМО МАРКЕР (Точка на карті)
+        // Координати [48.45, 34.98] - це Дніпро. Можеш змінити їх на будь-які.
+        var marker = L.marker([48.45, 34.98]).addTo(map);
+        marker.bindPopup("<b>Штаб карти</b><br>Тут ми починаємо проект.").openPopup();
     </script>
 </body>
-</html>І
+</html>
