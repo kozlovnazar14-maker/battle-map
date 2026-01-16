@@ -2,17 +2,19 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Супутникова Карта</title>
+    <title>Оперативна карта | Гібрид</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         body, html { margin: 0; padding: 0; height: 100%; background: #1a1a1a; }
         #map { height: 100vh; width: 100%; }
+        /* Кнопка повернення в меню */
         .back-btn { 
-            position: absolute; top: 10px; right: 10px; z-index: 1000; 
+            position: absolute; top: 10px; right: 50px; z-index: 1000; 
             background: rgba(0,0,0,0.8); color: white; padding: 10px 15px; 
             text-decoration: none; border-radius: 5px; border: 1px solid #e74c3c; 
             font-family: Arial; font-weight: bold;
         }
+        .back-btn:hover { background: #e74c3c; }
     </style>
 </head>
 <body>
@@ -22,24 +24,47 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Створюємо карту
-        var map = L.map('map').setView([48.37, 31.16], 6);
+        // 1. СТВОРЮЄМО ШАРИ КАРТИ
         
-        // ПІДКЛЮЧАЄМО СУПУТНИК
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Esri, Maxar, Earthstar Geographics'
-        }).addTo(map);
+        // Супутник (Esri)
+        var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri, Maxar'
+        });
 
-        // Додаємо маркер
-        L.marker([48.45, 34.98]).addTo(map).bindPopup("<b>Командний центр</b>");
+        // Назви міст та кордони (Google Hybrid)
+        var labels = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', {
+            attribution: '© Google'
+        });
 
-        // Додаємо червону зону
+        // 2. ІНІЦІАЛІЗАЦІЯ КАРТИ (за замовчуванням додаємо обидва шари)
+        var map = L.map('map', {
+            center: [48.37, 31.16],
+            zoom: 6,
+            layers: [satellite, labels] // Обидва шари активні відразу
+        });
+
+        // 3. ДОДАЄМО ПЕРЕМИКАЧ ШАРІВ (у верхній правий кут)
+        var baseMaps = {
+            "Тільки супутник": satellite
+        };
+        var overlayMaps = {
+            "Назви та кордони": labels
+        };
+        L.control.layers(null, overlayMaps, {collapsed: false}).addTo(map);
+
+        // 4. ТВОЇ ОБ'ЄКТИ
+        // Маркер (Штаб у Дніпрі)
+        L.marker([48.45, 34.98]).addTo(map)
+            .bindPopup("<b>Командний центр</b><br>Оперативна група 'Схід'");
+
+        // Червона зона (Зона боїв)
         L.circle([48.01, 37.80], {
             color: 'red',
             fillColor: '#f03',
             fillOpacity: 0.4,
-            radius: 30000 
-        }).addTo(map);
+            radius: 35000 
+        }).addTo(map).bindPopup("Район активних зіткнень");
+
     </script>
 </body>
 </html>
