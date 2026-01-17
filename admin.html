@@ -2,28 +2,67 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Адмін-панель Карти</title>
+    <title>Адмін-панель: Повний функціонал</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #1a1a1a; font-family: Arial; }
+        body, html { margin: 0; padding: 0; height: 100%; background: #1a1a1a; font-family: 'Segoe UI', Arial; }
         #map { height: 100vh; width: 100%; }
-        .admin-panel { 
-            position: absolute; top: 10px; left: 50px; z-index: 1000; 
-            background: rgba(0,0,0,0.9); color: white; padding: 15px; 
-            border-radius: 8px; border: 2px solid #e74c3c; width: 250px;
+        
+        .admin-sidebar { 
+            position: absolute; top: 0; left: 0; bottom: 0; z-index: 1000; 
+            background: rgba(20, 20, 20, 0.95); color: white; padding: 20px; 
+            width: 300px; border-right: 2px solid #e74c3c; box-shadow: 5px 0 15px rgba(0,0,0,0.5);
         }
-        button { background: #e74c3c; color: white; border: none; padding: 10px; width: 100%; cursor: pointer; border-radius: 4px; font-weight: bold; }
-        textarea { width: 100%; height: 100px; margin-top: 10px; background: #333; color: #fff; border: 1px solid #555; font-size: 10px; }
+        
+        h3 { color: #e74c3c; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+        .control-group { margin-bottom: 15px; background: #2a2a2a; padding: 10px; border-radius: 5px; }
+        label { display: block; font-size: 12px; margin-bottom: 5px; color: #aaa; }
+        
+        input, select, textarea { 
+            width: 100%; background: #111; color: white; border: 1px solid #444; 
+            padding: 8px; border-radius: 4px; box-sizing: border-box;
+        }
+        
+        button { 
+            background: #e74c3c; color: white; border: none; padding: 12px; 
+            width: 100%; cursor: pointer; border-radius: 4px; font-weight: bold; margin-top: 10px;
+            transition: 0.3s;
+        }
+        button:hover { background: #c0392b; }
+        .save-all { background: #27ae60; margin-top: 20px; }
+        .save-all:hover { background: #219150; }
     </style>
 </head>
 <body>
 
-    <div class="admin-panel">
-        <h3>Панель адміна</h3>
-        <p><small>1. Намалюй зону або лінію<br>2. Натисни кнопку нижче</small></p>
-        <button onclick="saveData()">ОТРИМАТИ КОД</button>
-        <textarea id="output" readonly placeholder="Тут з'явиться код..."></textarea>
+    <div class="admin-sidebar">
+        <h3>HQ Control Center</h3>
+        
+        <div class="control-group">
+            <label>Назва об'єкта (Popup)</label>
+            <input type="text" id="obj-name" placeholder="Напр: 3-тя рота">
+        </div>
+
+        <div class="control-group">
+            <label>Колір (HEX або назва)</label>
+            <select id="obj-color">
+                <option value="red">Ворог (Червоний)</option>
+                <option value="blue">Наші (Синій)</option>
+                <option value="yellow">Нейтрал (Жовтий)</option>
+                <option value="green">Безпечно (Зелений)</option>
+                <option value="black">Знищено (Чорний)</option>
+            </select>
+        </div>
+
+        <p style="font-size: 11px; color: #888;">*Налаштуй параметри вище ПЕРЕД тим, як малювати об'єкт.</p>
+        
+        <hr style="border: 0; border-top: 1px solid #444; margin: 20px 0;">
+        
+        <button class="save-all" onclick="exportData()">СКАЧАТИ JSON ДЛЯ САЙТУ</button>
+        <p style="font-size: 11px; color: #aaa; margin-top: 10px;">
+            Після натискання скопіюй текст з вікна та встав у файл <b>data.json</b> на GitHub.
+        </p>
     </div>
 
     <div id="map"></div>
@@ -32,8 +71,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script>
         var map = L.map('map').setView([48.37, 31.16], 6);
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
-        L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}').addTo(map);
+        
+        var sat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+        var hybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}').addTo(map);
 
         var drawnItems = new L.FeatureGroup();
         map.addLayer(drawnItems);
@@ -41,21 +81,43 @@
         var drawControl = new L.Control.Draw({
             edit: { featureGroup: drawnItems },
             draw: {
-                polygon: { shapeOptions: { color: '#ff0000', fillOpacity: 0.5 } },
-                polyline: { shapeOptions: { color: '#0000ff', weight: 5 } },
-                marker: true, circle: false, rectangle: false
+                polygon: true,
+                polyline: true,
+                marker: true,
+                circle: false,
+                rectangle: false
             }
         });
         map.addControl(drawControl);
 
+        // Обробка створення об'єкта
         map.on(L.Draw.Event.CREATED, function (e) {
-            drawnItems.addLayer(e.layer);
+            var layer = e.layer;
+            var color = document.getElementById('obj-color').value;
+            var name = document.getElementById('obj-name').value || "Без назви";
+
+            // Додаємо стилі та дані до об'єкта
+            if (layer.setStyle) {
+                layer.setStyle({ color: color, fillColor: color, fillOpacity: 0.4 });
+            }
+            
+            // Записуємо властивості прямо в об'єкт для GeoJSON
+            layer.feature = layer.feature || {type: "Feature", properties: {}};
+            layer.feature.properties.color = color;
+            layer.feature.properties.popup = name;
+
+            layer.bindPopup("<b>" + name + "</b>");
+            drawnItems.addLayer(layer);
         });
 
-        function saveData() {
+        function exportData() {
             var data = drawnItems.toGeoJSON();
-            document.getElementById('output').value = JSON.stringify(data);
-            alert("Код згенеровано в текстове поле! Скопіюй його.");
+            var jsonStr = JSON.stringify(data);
+            
+            // Створюємо вікно для копіювання
+            var win = window.open("", "JSON Export", "width=600,height=400");
+            win.document.body.innerHTML = "<pre>" + jsonStr + "</pre>";
+            win.document.title = "Скопіюйте цей код у data.json";
         }
     </script>
 </body>
